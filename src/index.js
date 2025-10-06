@@ -15,10 +15,29 @@ app.use(express.json());
 
 //Rota para GET http://localhost:3333/growdevers
 app.get("/growdevers", (req, res) => {
+    const { idade, nome, email, email_includes } = req.query;
+
+    //tornando a variável dados uma lista de growdevers
+    let dados = growdevers;
+
+    //Se tem idade, filtra, se não mostra a lista completa
+    if(idade){
+        dados = dados.filter(item => item.idade === Number(idade));
+    }
+    if(nome){
+        dados = dados.filter(item => item.nome.includes(nome));
+    }
+    if(email){
+        dados = dados.filter((item) => item.email === email);
+    }
+    if(email_includes){
+        dados = dados.filter(item => item.email.includes(email));
+    }
+
     res.status(200).send({
         ok: true,
         mensagem: "Growdevers listados com sucesso",
-        dados: growdevers
+        dados
     });
 });
 
@@ -45,7 +64,7 @@ app.get("/growdevers/:id", (req, res) => {
     });
 });
 
-//Rota para POST
+//Rota para POST - ainda não está adicionando no arquivo dados.js
 app.post("/growdevers", (req, res) => {
     // Primeira etapa - entrada
     const body = req.body;
@@ -64,6 +83,81 @@ app.post("/growdevers", (req, res) => {
     res.status(201).send({
         ok: true,
         mensagem: "Growdever criado com sucesso",
+        dados: growdevers
+    });
+});
+
+//Rota para PUT - atualizar um growdever específico
+app.put("/growdevers/:id", (req, res) => {
+    // Primeira etapa - entrada
+    const { id } = req.params;
+    const { nome, email, idade, matriculado} = req.body;
+    
+    // Segunda etapa - processamento
+    const growdever = growdevers.find(item => item.id === id);
+    if(!growdever){
+        return res.status(404).send({
+            ok: false,
+            mensagem: "Growdever não encontrado"
+        })
+    }
+    growdever.nome = nome;
+    growdever.email = email;
+    growdever.idade = idade;
+    growdever.matriculado = matriculado;
+
+    // Terceira etapa - saida
+    res.status(200).send({
+        ok: true,
+        mensagem: "Growdever atualizado com sucesso",
+        dados: growdevers
+    });
+});
+
+//Rota para PATCH - atualização específica de um growdever
+//Mudando o campo matriculado
+app.patch("/growdevers/:id", (req, res) => {
+    // Primeira etapa - entrada
+    const { id } = req.params;
+    
+    // Segunda etapa - processamento
+    const growdever = growdevers.find(item => item.id === id);
+    if(!growdever){
+        return res.status(404).send({
+            ok: false,
+            mensagem: "Growdever não encontrado"
+        })
+    }
+    growdever.matriculado = !growdever.matriculado;
+
+    // Terceira etapa - saida
+    res.status(200).send({
+        ok: true,
+        mensagem: "Growdever atualizado com sucesso",
+        dados: growdevers
+    });
+});
+
+//Rota para DELETE
+app.delete("/growdevers/:id", (req, res) => {
+    // Primeira etapa - entrada
+    const { id } = req.params;
+    
+    // Segunda etapa - processamento
+    const growdeverIndex = growdevers.findIndex(item => item.id === id);
+    //findIndex retorna -1 se não existe
+    if(growdeverIndex < 0){
+        return res.status(404).send({
+            ok: false,
+            mensagem: "Growdever não encontrado"
+        })
+    }
+    growdevers.splice(growdeverIndex, 1);
+
+    // Terceira etapa - saida
+    res.status(200).send({
+        ok: true,
+        mensagem: "Growdever deletado com sucesso",
         dados: growdevers
     });
 });
